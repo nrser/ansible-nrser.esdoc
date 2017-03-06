@@ -38,9 +38,23 @@ default_user: null
 # set to false to not save options in .qb-options.yml files
 save_options: true
 
-options: []
+options: # []
 # - name: example
 #   description: an example of a variable.
 #   required: false
 #   type: boolean # boolean (default) | string
 #   short: e
+- name: package_dir
+  description: the target package directory.
+  type: string
+  short: p
+
+- name: src
+  description: src property for esdoc config.
+  type: string
+  short: s
+
+- name: destination
+  description: destination property for esdoc config.
+  type: string
+  short: d

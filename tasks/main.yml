@@ -1,2 +1,13 @@
 ---
 # tasks file for nrser.esdoc
+
+- name: add @nrser/esdoc
+  stream
+    cmd: yarn add --dev @nrser/esdoc
+    chdir: "{{ esdoc_package_dir }}"
+
+- name: template in .esdoc.json
+  template:
+    src: .esdoc.json.j2
+    dest: "{{ esdoc_package_dir }}/.esdoc.json"
+  
