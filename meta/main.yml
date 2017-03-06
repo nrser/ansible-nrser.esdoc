@@ -3,6 +3,8 @@
 
 allow_duplicates: yes
 
-dependencies: []
-# - role: role-name
-
+dependencies: # []
+- role: qb.gitignore
+  gitignore_dest: "{{ esdoc_package_dir }}"
+  gitignore_tag: esdoc generated output
+  gitignore_content: "/{{ (esdoc_package_dir + '/' + esdoc_destination) | realpath | relpath(esdoc_package_dir) }}"
