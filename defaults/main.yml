@@ -1,6 +1,8 @@
 ---
 # defaults file for nrser.esdoc
 esdoc_package_dir: "{{ qb_dir }}"
-esdoc_src: ./src
-esdoc_destination: ./doc/esdoc
-  
+esdoc_src: src
+esdoc_destination: doc/esdoc
+esdoc_styles: true
+esdoc_support_dir: doc/support/esdoc
+esdoc_force: false

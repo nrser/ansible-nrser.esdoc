@@ -4,6 +4,8 @@
 allow_duplicates: yes
 
 dependencies: # []
+- role: nrser.state_mate
+
 - role: qb.gitignore
   gitignore_dest: "{{ esdoc_package_dir }}"
   gitignore_tag: esdoc generated output

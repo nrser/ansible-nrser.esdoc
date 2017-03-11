@@ -11,3 +11,7 @@
   template:
     src: .esdoc.json.j2
     dest: "{{ esdoc_package_dir }}/.esdoc.json"
+    force: "{{ esdoc_force }}"
+
+- include: styles.yml
+  when: esdoc_styles

@@ -58,3 +58,16 @@ options: # []
   description: destination property for esdoc config.
   type: string
   short: d
+
+- name: force
+  description: force operations (overwrite).
+  type: boolean
+  short: f
+
+- name: styles
+  description: add customs styles.
+  type: boolean
+
+- name: support_dir
+  description: directory to put custom styles and other supporting files in.
+  type: string
