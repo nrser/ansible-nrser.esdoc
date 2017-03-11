@@ -30,7 +30,14 @@ var_prefix: null
 #     -   invoke an execuable, passing a JSON serialization of the options 
 #         mapping their CLI names to values. path can be relative to role
 #         directory.
-default_dir: null
+# -   {find_up: FILENAME}
+#     -   starting at the current direcotry and climbing up to parent 
+#         directories, use the first one that contains FILENAME. error
+#         if none is found.
+# 
+# default to dir with package.json in it, finding up
+default_dir:
+  find_up: package.json
 
 # default user to become for play
 default_user: null
