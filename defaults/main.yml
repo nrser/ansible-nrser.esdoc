@@ -6,3 +6,9 @@ esdoc_destination: doc/esdoc
 esdoc_styles: true
 esdoc_support_dir: doc/support/esdoc
 esdoc_force: false
+
+esdoc_gh_pages: true
+esdoc_gh_pages_dir: doc/gh-pages
+
+esdoc_repo_owner: "{{ qb_github_owner }}"
+esdoc_repo_name: "{{ qb_github_name }}"

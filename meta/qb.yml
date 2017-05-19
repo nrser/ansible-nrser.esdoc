@@ -78,3 +78,8 @@ options: # []
 - name: support_dir
   description: directory to put custom styles and other supporting files in.
   type: string
+
+- name: gh_pages
+  description: >-
+    Create new repo to serve as gh-pages branch and add it as a submoudle.
+  type: boolean

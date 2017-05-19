@@ -1,0 +1,129 @@
+---
+- name: >-
+    Resolve gh pages dest relative to package dir.
+  set_fact:
+    esdoc_gh_pages_dest: "{{ esdoc_package_dir }}/{{ esdoc_gh_pages_dir }}"
+
+- name: >-
+    Create the gh-pages dir at {{ esdoc_gh_pages_dest }}
+  file:
+    dest: "{{ esdoc_gh_pages_dest }}"
+    state: directory
+
+- name: >-
+    Initialize new Git repo for the gh-pages branch
+  command: git init
+  args:
+    chdir: "{{ esdoc_gh_pages_dest }}"
+    creates: "{{ esdoc_gh_pages_dest }}/.git"
+
+- name: >-
+    Add {{ item }} Gitignore
+  with_items:
+  - Global/macOS
+  - Ruby
+  - Jekyll
+  - QB
+  loop_control:
+    loop_var: gitignore_name
+  include_role:
+    name: qb.gitignore
+  vars:
+    gitignore_dest: "{{ esdoc_gh_pages_dest }}"
+  
+- name: >-
+    Copy in files
+  copy:
+    src: "{{ role_path }}/files/gh-pages"
+    dest: "{{ esdoc_gh_pages_dest }}/.."
+    force: "{{ esdoc_force }}"
+
+- name: >-
+    Render templates
+  with_items:
+  - _config.yml.j2
+  template:
+    src: "{{ role_path }}/templates/gh-pages/{{ item }}"
+    dest: "{{ esdoc_gh_pages_dest }}/{{ item | regex_replace('\\.j2$', '') }}"
+    force: "{{ esdoc_force }}"
+
+- name: >-
+    Create versions directory
+  file:
+    dest: "{{ esdoc_gh_pages_dest }}/versions"
+    state: directory
+
+- name: >-
+    Create v -> versions symlink
+  file:
+    src: versions/
+    dest: "{{ esdoc_gh_pages_dest }}/v"
+    state: link
+
+- name: >-
+    Throw a .gitkeep in versions so we have something to commit
+  copy:
+    dest: "{{ esdoc_gh_pages_dest }}/versions/.gitkeep"
+    content: ''
+
+- name: >-
+    Install gh-pages gems
+  bundler:
+    state: present
+    chdir: "{{ esdoc_gh_pages_dest }}"
+    gem_path: .bundle
+
+- name: >-
+    Add everything to Git
+  command: >-
+    git add .
+  args:
+    chdir: "{{ esdoc_gh_pages_dest }}"
+
+- name: >-
+    Commit everything
+  command: >-
+    git commit -a -m "initial commit"
+  args:
+    chdir: "{{ esdoc_gh_pages_dest }}"
+
+- name: >-
+    Create gh-pages branch
+  command: >-
+    git checkout -b gh-pages
+  args:
+    chdir: "{{ esdoc_gh_pages_dest }}"
+
+- name: >-
+    Delete master branch
+  command: >-
+    git branch -d master
+  args:
+    chdir: "{{ esdoc_gh_pages_dest }}"
+
+- name: >-
+    Set git origin remote to gh-pages branch of the main repo's origin
+  command: >-
+    git remote add -t gh-pages origin {{ qb_git_origin_url }}
+  args:
+    chdir: "{{ esdoc_gh_pages_dest }}"
+
+- name: >-
+    Push gh-pages branch
+  command: >-
+    git push origin gh-pages
+  args:
+    chdir: "{{ esdoc_gh_pages_dest }}"
+
+- name: >-
+    Remove the gh-pages directory
+  file:
+    dest: "{{ esdoc_gh_pages_dest }}"
+    state: absent
+
+- name: >-
+    Add gh-pages branch as submodule
+  command: >-
+    git submodule add -b gh-pages {{ qb_git_origin_url }} doc/gh-pages
+  args:
+    chdir: "{{ esdoc_package_dir }}"

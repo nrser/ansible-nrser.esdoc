@@ -5,7 +5,7 @@
   stream:
     cmd: yarn add --dev @nrser/esdoc
     chdir: "{{ esdoc_package_dir }}"
-  when: "{{ not ('@nrser/esdoc' in qb_package_json['devDependencies']) }}"
+  when: not ('@nrser/esdoc' in qb_package_json['devDependencies'])
 
 - name: template in .esdoc.json
   template:
@@ -13,5 +13,23 @@
     dest: "{{ esdoc_package_dir }}/.esdoc.json"
     force: "{{ esdoc_force }}"
 
+- when: not esdoc_gh_pages
+  include_role:
+    name: qb.gitignore
+  vars:
+    gitignore_content: >-
+      {{ 
+        '/' + (
+          (esdoc_package_dir + '/' + esdoc_destination) |
+            realpath | 
+            relpath(esdoc_package_dir)
+          )
+      }}
+    gitignore_dest: "{{ esdoc_package_dir }}"
+    gitignore_tag: esdoc generated output
+
 - include: styles.yml
   when: esdoc_styles
+
+- include: gh-pages.yml
+  when: esdoc_gh_pages
