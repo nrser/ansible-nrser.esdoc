@@ -1,41 +1,38 @@
 ---
 - name: >-
-    Resolve gh pages dest relative to package dir.
+    The GitHub Pages destination is the branch name in the docs directory.
   set_fact:
-    esdoc_gh_pages_dest: "{{ esdoc_package_dir }}/{{ esdoc_gh_pages_dir }}"
+    esdoc_gh_pages_dest: >-
+      {{ esdoc_package_dir }}/{{ esdoc_doc_dir }}/{{ esdoc_gh_pages_branch }}
 
 - name: >-
-    Create the gh-pages dir at {{ esdoc_gh_pages_dest }}
+    Create the GitHub Pages dir at {{ esdoc_gh_pages_dest }}
   file:
     dest: "{{ esdoc_gh_pages_dest }}"
     state: directory
 
 - name: >-
-    Initialize new Git repo for the gh-pages branch
-  command: git init
-  args:
-    chdir: "{{ esdoc_gh_pages_dest }}"
-    creates: "{{ esdoc_gh_pages_dest }}/.git"
+    Initialize Git repo at {{ esdoc_gh_pages_dest }}
+  include_role:
+    name: qb.git_repo
+  vars:
+    git_repo_dest: "{{ esdoc_gh_pages_dest }}"
+    git_repo_gitignores:
+    - Ruby
+    - Jekyll
 
 - name: >-
-    Add {{ item }} Gitignore
+    Copy GitHub Pages files
   with_items:
-  - Global/macOS
-  - Ruby
-  - Jekyll
-  - QB
+  - _data/versions.yml
+  - _layouts/default.html
+  - Gemfile
+  - index.md
   loop_control:
-    loop_var: gitignore_name
-  include_role:
-    name: qb.gitignore
-  vars:
-    gitignore_dest: "{{ esdoc_gh_pages_dest }}"
-  
-- name: >-
-    Copy in files
+    loop_var: path
   copy:
-    src: "{{ role_path }}/files/gh-pages"
-    dest: "{{ esdoc_gh_pages_dest }}/.."
+    src: "{{ role_path }}/files/gh-pages/"
+    dest: "{{ esdoc_gh_pages_dest }}"
     force: "{{ esdoc_force }}"
 
 - name: >-
@@ -66,12 +63,19 @@
     dest: "{{ esdoc_gh_pages_dest }}/versions/.gitkeep"
     content: ''
 
+# TODO doesn't work, not sure why... maybe rbenv BS?
+# - name: >-
+#     Install gh-pages gems
+#   bundler:
+#     state: present
+#     chdir: "{{ esdoc_gh_pages_dest }}"
+#     gem_path: ./.bundle
+
 - name: >-
     Install gh-pages gems
-  bundler:
-    state: present
+  shell: bundle install --path=./.bundle
+  args:
     chdir: "{{ esdoc_gh_pages_dest }}"
-    gem_path: .bundle
 
 - name: >-
     Add everything to Git
@@ -88,9 +92,9 @@
     chdir: "{{ esdoc_gh_pages_dest }}"
 
 - name: >-
-    Create gh-pages branch
+    Create {{ esdoc_gh_pages_branch }} branch
   command: >-
-    git checkout -b gh-pages
+    git checkout -b {{ esdoc_gh_pages_branch }}
   args:
     chdir: "{{ esdoc_gh_pages_dest }}"
 
@@ -102,28 +106,32 @@
     chdir: "{{ esdoc_gh_pages_dest }}"
 
 - name: >-
-    Set git origin remote to gh-pages branch of the main repo's origin
+    Set git origin remote to {{ esdoc_gh_pages_branch }} branch of the main 
+    repo's origin
   command: >-
-    git remote add -t gh-pages origin {{ qb_git_origin_url }}
+    git remote add -t {{ esdoc_gh_pages_branch }} origin {{ esdoc_package_dir_facts.git.origin }}
   args:
     chdir: "{{ esdoc_gh_pages_dest }}"
 
 - name: >-
-    Push gh-pages branch
+    Push {{ esdoc_gh_pages_branch }} branch
   command: >-
-    git push origin gh-pages
+    git push origin {{ esdoc_gh_pages_branch }}
   args:
     chdir: "{{ esdoc_gh_pages_dest }}"
 
 - name: >-
-    Remove the gh-pages directory
+    Remove the GitHub Pages directory
   file:
     dest: "{{ esdoc_gh_pages_dest }}"
     state: absent
 
 - name: >-
-    Add gh-pages branch as submodule
+    Add {{ esdoc_gh_pages_branch }} branch as submodule
   command: >-
-    git submodule add -b gh-pages {{ qb_git_origin_url }} doc/gh-pages
+    git submodule add
+      -b {{ esdoc_gh_pages_branch }}
+      {{ qb_git_origin_url }}
+      doc/{{ esdoc_gh_pages_branch }}
   args:
     chdir: "{{ esdoc_package_dir }}"

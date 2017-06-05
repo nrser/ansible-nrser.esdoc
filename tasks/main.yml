@@ -1,35 +1,42 @@
 ---
 # tasks file for nrser.esdoc
 
-- name: add @nrser/esdoc
+- path_facts:
+    path: "{{ esdoc_package_dir }}"
+    github_api: true
+  register: esdoc_package_dir_facts
+
+- name: >-
+    The GitHub Pages branch name is 'gh-pages' if the repo is public or
+    'gh-pages-private' if it's private.
+  set_fact:
+    esdoc_gh_pages_branch: >-
+      {%- if esdoc_package_dir_facts.git.github.private -%}
+        gh-pages-private
+      {%- else -%}
+        gh-pages
+      {%- endif -%}
+
+- name: Add @nrser/esdoc package to devDependencies
   stream:
     cmd: yarn add --dev @nrser/esdoc
     chdir: "{{ esdoc_package_dir }}"
-  when: not ('@nrser/esdoc' in qb_package_json['devDependencies'])
+  when: >-
+    not (
+      '@nrser/esdoc'
+      in esdoc_package_dir_facts.npm.package_json.devDependencies
+    )
 
-- name: template in .esdoc.json
+- name: Template in config/esdoc.js
   template:
-    src: .esdoc.json.j2
-    dest: "{{ esdoc_package_dir }}/.esdoc.json"
+    src: esdoc.js.j2
+    dest: "{{ esdoc_package_dir }}/config/esdoc.js"
     force: "{{ esdoc_force }}"
 
-- when: not esdoc_gh_pages
-  include_role:
-    name: qb.gitignore
-  vars:
-    gitignore_content: >-
-      {{ 
-        '/' + (
-          (esdoc_package_dir + '/' + esdoc_destination) |
-            realpath | 
-            relpath(esdoc_package_dir)
-          )
-      }}
-    gitignore_dest: "{{ esdoc_package_dir }}"
-    gitignore_tag: esdoc generated output
-
-- include: styles.yml
+- name: Include custom styles
+  include: styles.yml
   when: esdoc_styles
 
-- include: gh-pages.yml
+- name: Include GitHub Pages / Jekyll site setup
+  include: gh-pages.yml
   when: esdoc_gh_pages

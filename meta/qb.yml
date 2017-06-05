@@ -5,7 +5,7 @@
 #
 
 # description of the role to show in it's help output.
-description: null
+description: Setup ESDoc to generate output for GitHub Pages.
 
 # prefix for role variables
 var_prefix: null
