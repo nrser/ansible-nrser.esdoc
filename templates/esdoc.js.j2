@@ -19,8 +19,8 @@ module.exports = {
     "flow",
   ],
   styles: [
-  {%- if esdoc_styles %}
+  {% if esdoc_styles -%}
     "doc/support/esdoc/styles.css",
-  {% endif -%}
+  {%- endif %}
   ],
 }
