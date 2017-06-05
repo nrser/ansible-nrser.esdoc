@@ -10,10 +10,3 @@
     src: styles.css
     dest: "{{ esdoc_package_dir }}/{{ esdoc_support_dir }}/styles.css"
     force: "{{ esdoc_force }}"
-
-- name: add styles to config
-  state:
-    json:
-      key: "{{ esdoc_package_dir }}/.esdoc.json:styles"
-      array_contains: "{{ esdoc_support_dir }}/styles.css"
-      create: true

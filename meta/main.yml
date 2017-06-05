@@ -3,5 +3,4 @@
 
 allow_duplicates: yes
 
-dependencies: # []
-- role: nrser.state_mate
+dependencies: []

@@ -6,7 +6,7 @@ const release = `${ version.major }.${ version.minor }.${ version.patch }`;
 
 module.exports = {
   release,
-  title: "nrser",
+  title: packageJson.name,
   source: "src",
   destination: `{{ esdoc_doc_dir }}/{{ esdoc_gh_pages_branch }}/versions/${ release }`,
   experimentalProposal: {
@@ -16,9 +16,11 @@ module.exports = {
     "dynamicImport": true
   },
   parserPlugins: [
-    "flow"
+    "flow",
   ],
   styles: [
-    "doc/support/esdoc/styles.css"
-  ]
+  {%- if esdoc_styles %}
+    "doc/support/esdoc/styles.css",
+  {% endif -%}
+  ],
 }
