@@ -8,7 +8,7 @@ module.exports = {
   release,
   title: "nrser",
   source: "src",
-  destination: `doc/gh-pages/versions/${ release }`,
+  destination: `{{ esdoc_doc_dir }}/{{ esdoc_gh_pages_branch }}/versions/${ release }`,
   experimentalProposal: {
     "classProperties": true,
     "objectRestSpread": true,
