@@ -134,3 +134,20 @@
     chdir: "{{ esdoc_site_dest }}"
     gem_path: ./.bundle
     # executable: "{{ executable }}"
+
+- name: >-
+    Commit the Gemfile.lock that gets created
+  command: >-
+    git commit
+      -m "Add Gemfile.lock after bundle install"
+      Gemfile.lock
+  args:
+    chdir: "{{ esdoc_package_root }}"
+
+- name: >-
+    Push {{ esdoc_site_branch }} branch (again with Gemfile.lock)
+  command: >-
+    git push origin {{ esdoc_site_branch }}
+  args:
+    chdir: "{{ esdoc_site_dest }}"
+    
