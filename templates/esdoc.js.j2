@@ -1,4 +1,4 @@
-const packageJson = require('../package.json');
+const packageJson = require('{{ esdoc_config_package_json_path }}');
 const semver = require('semver');
 
 const version = semver(packageJson.version);
@@ -8,7 +8,7 @@ module.exports = {
   release,
   title: packageJson.name,
   source: "src",
-  destination: `{{ esdoc_doc_dir }}/{{ esdoc_gh_pages_branch }}/versions/${ release }`,
+  destination: `{{ esdoc_site_dir }}/versions/${ release }`,
   experimentalProposal: {
     "classProperties": true,
     "objectRestSpread": true,
@@ -19,8 +19,9 @@ module.exports = {
     "flow",
   ],
   styles: [
-  {% if esdoc_styles -%}
-    "doc/support/esdoc/styles.css",
-  {%- endif %}
+    "{{ esdoc_support_dir }}/style.css",
+  ],
+  scripts: [
+    "{{ esdoc_support_dir }}/script.js",
   ],
 }

@@ -5,7 +5,8 @@
 #
 
 # description of the role to show in it's help output.
-description: Setup ESDoc to generate output for GitHub Pages.
+description: >-
+  Setup ESDoc to generate output for a Jekyll site / GitHub Pages.
 
 # prefix for role variables
 var_prefix: null
@@ -45,41 +46,57 @@ default_user: null
 # set to false to not save options in .qb-options.yml files
 save_options: true
 
-options: # []
-# - name: example
-#   description: an example of a variable.
-#   required: false
-#   type: boolean # boolean (default) | string
-#   short: e
-- name: package_dir
-  description: the target package directory.
+options:
+- name: package_root
+  description: >-
+    The target package directory. Defaults to the closest directory with
+    a package.json file walking up.
   type: string
   short: p
 
+- name: config_path
+  description: >-
+    Where to put the ESDoc config file, relative to the pacakge root.
+  type: string
+  short: c
+
 - name: src
-  description: src property for esdoc config.
+  description: >-
+    `src` property for esdoc config.
   type: string
   short: s
 
-- name: destination
-  description: destination property for esdoc config.
-  type: string
-  short: d
-
 - name: force
-  description: force operations (overwrite).
+  description: >-
+    Force operations (overwrite).
   type: boolean
   short: f
 
-- name: styles
-  description: add customs styles.
-  type: boolean
-
-- name: support_dir
-  description: directory to put custom styles and other supporting files in.
-  type: string
-
-- name: gh_pages
+- name: doc_dir
   description: >-
-    Create new repo to serve as gh-pages branch and add it as a submoudle.
+    Directory to put docs in, relative to the package root.
+  type: string
+  short: d
+
+# - name: support_dir
+#   description: >-
+#     Directory to put custom styles and other supporting files in, relative
+#     to the package root.
+#   type: string
+#   
+# - name: site_dir
+#   description: >-
+#     Directory to put the Jekyll docs site in, relative to the package root.
+#   type: string
+
+- name: site_branch
+  description: >-
+    Name of branch to create for the docs site. Defaults to 'gh-pages' if the 
+    repo is public, or 'doc-site' if it's private.
+  type: string
+  short: b
+    
+- name: bundle_install
+  description: >-
+    Run `bundle install` after creating the gh-pages Jekyll app.
   type: boolean

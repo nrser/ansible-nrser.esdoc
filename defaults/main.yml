@@ -1,10 +1,15 @@
 ---
 # defaults file for nrser.esdoc
-esdoc_package_dir: "{{ qb_dir }}"
-esdoc_doc_dir: doc
-esdoc_src: src
-esdoc_support_dir: "{{ esdoc_doc_dir }}/support/esdoc"
-esdoc_styles: true
+
 esdoc_force: false
 
-esdoc_gh_pages: true
+esdoc_package_root: "{{ qb_dir }}"
+
+esdoc_config_path: config/esdoc.js
+esdoc_src: src
+
+esdoc_doc_dir: doc
+esdoc_support_dir: "{{ esdoc_doc_dir }}/support/esdoc"
+esdoc_site_dir: "{{ esdoc_doc_dir }}/site"
+
+esdoc_bundle_install: true

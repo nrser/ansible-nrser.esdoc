@@ -2,17 +2,21 @@
 # tasks file for nrser.esdoc
 
 - path_facts:
-    path: "{{ esdoc_package_dir }}"
+    path: "{{ esdoc_package_root }}"
     github_api: true
-  register: esdoc_package_dir_facts
+  register: esdoc_package_root_facts
 
-- name: >-
-    The GitHub Pages branch name is 'gh-pages' if the repo is public or
-    'gh-pages-private' if it's private.
+- name: |-
+    If not defined, the site branch name is set to
+    
+    -   'gh-pages' if the repo is public.
+    -   'doc-site' if it's private.
+    
+  when: esdoc_site_branch is not defined
   set_fact:
-    esdoc_gh_pages_branch: >-
-      {%- if esdoc_package_dir_facts.git.github.private -%}
-        gh-pages-private
+    esdoc_site_branch: >-
+      {%- if esdoc_package_root_facts.git.github.private -%}
+        doc-site
       {%- else -%}
         gh-pages
       {%- endif -%}
@@ -20,23 +24,61 @@
 - name: Add @nrser/esdoc package to devDependencies
   stream:
     cmd: yarn add --dev @nrser/esdoc
-    chdir: "{{ esdoc_package_dir }}"
+    chdir: "{{ esdoc_package_root }}"
   when: >-
     not (
       '@nrser/esdoc'
-      in esdoc_package_dir_facts.npm.package_json.devDependencies
+      in esdoc_package_root_facts.npm.package_json.devDependencies
     )
+
+- name: Form path from config file to package.json for templating
+  set_fact:
+    esdoc_config_package_json_path: >-
+      {{
+        (esdoc_package_root + '/package.json') | relpath(
+          (esdoc_package_root + '/' + esdoc_config_path) | dirname
+        )
+      }}
+
+- name: Create config file direcotry
+  file:
+    dest: "{{ (esdoc_package_root + '/' + esdoc_config_path) | dirname }}"
+    state: directory
 
 - name: Template in config/esdoc.js
   template:
     src: esdoc.js.j2
-    dest: "{{ esdoc_package_dir }}/config/esdoc.js"
+    dest: "{{ esdoc_package_root }}/{{ esdoc_config_path }}"
     force: "{{ esdoc_force }}"
 
-- name: Include custom styles
-  include: styles.yml
-  when: esdoc_styles
+- name: Create support dir
+  file:
+    dest: "{{ esdoc_package_root }}/{{ esdoc_support_dir }}"
+    state: directory
 
-- name: Include GitHub Pages / Jekyll site setup
-  include: gh-pages.yml
-  when: esdoc_gh_pages
+- name: Add support files
+  with_items:
+  - style.css
+  - script.js
+  loop_control:
+    loop_var: filename
+  copy:
+    src: "{{ filename }}"
+    dest: "{{ esdoc_package_root }}/{{ esdoc_support_dir }}/{{ filename }}"
+    force: "{{ esdoc_force }}"
+
+- name: >-
+    The site destination is <package_dir>/<site_dir>.
+  set_fact:
+    esdoc_site_dest: >-
+      {{ esdoc_package_root }}/{{ esdoc_site_dir }}
+
+- name: See if site directory exists
+  stat:
+    path: "{{ esdoc_site_dest }}"
+  register: esdoc_site_dest_stat_result
+
+- name: Include Jekyll (GitHub Pages) site setup
+  when: not esdoc_site_dest_stat_result.stat.exists
+  include: site.yml
+  

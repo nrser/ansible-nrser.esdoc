@@ -1,0 +1,136 @@
+---
+- name: >-
+    Create the site dir at {{ esdoc_site_dest }}
+  file:
+    dest: "{{ esdoc_site_dest }}"
+    state: directory
+
+- name: >-
+    Initialize Git repo at {{ esdoc_site_dest }}
+  include_role:
+    name: qb.git_repo
+  vars:
+    git_repo_dest: "{{ esdoc_site_dest }}"
+    git_repo_gitignores:
+    - Ruby
+    - Jekyll
+
+- name: >-
+    Copy GitHub Pages files
+  with_items:
+  - _data/versions.yml
+  - _layouts/default.html
+  - Gemfile
+  - index.md
+  loop_control:
+    loop_var: path
+  copy:
+    src: "{{ role_path }}/files/site/"
+    dest: "{{ esdoc_site_dest }}"
+    force: "{{ esdoc_force }}"
+
+- name: >-
+    Render templates
+  with_items:
+  - _config.yml.j2
+  template:
+    src: "{{ role_path }}/templates/site/{{ item }}"
+    dest: "{{ esdoc_site_dest }}/{{ item | regex_replace('\\.j2$', '') }}"
+    force: "{{ esdoc_force }}"
+
+- name: >-
+    Create versions directory
+  file:
+    dest: "{{ esdoc_site_dest }}/versions"
+    state: directory
+
+- name: >-
+    Create v -> versions symlink
+  file:
+    src: versions/
+    dest: "{{ esdoc_site_dest }}/v"
+    state: link
+
+- name: >-
+    Throw a .gitkeep in versions so we have something to commit
+  copy:
+    dest: "{{ esdoc_site_dest }}/versions/.gitkeep"
+    content: ''
+
+- name: >-
+    Add everything to Git
+  command: >-
+    git add .
+  args:
+    chdir: "{{ esdoc_site_dest }}"
+
+- name: >-
+    Commit everything
+  command: >-
+    git commit -a -m "initial commit"
+  args:
+    chdir: "{{ esdoc_site_dest }}"
+
+- name: >-
+    Create {{ esdoc_site_branch }} branch
+  command: >-
+    git checkout -b {{ esdoc_site_branch }}
+  args:
+    chdir: "{{ esdoc_site_dest }}"
+
+- name: >-
+    Delete master branch
+  command: >-
+    git branch -d master
+  args:
+    chdir: "{{ esdoc_site_dest }}"
+
+- name: >-
+    Set git origin remote to {{ esdoc_site_branch }} branch of the main 
+    repo's origin
+  command: >-
+    git remote add
+      -t {{ esdoc_site_branch }}
+      origin
+      {{ esdoc_package_root_facts.git.origin }}
+  args:
+    chdir: "{{ esdoc_site_dest }}"
+
+- name: >-
+    Push {{ esdoc_site_branch }} branch
+  command: >-
+    git push origin {{ esdoc_site_branch }}
+  args:
+    chdir: "{{ esdoc_site_dest }}"
+
+- name: >-
+    Remove the GitHub Pages directory
+  file:
+    dest: "{{ esdoc_site_dest }}"
+    state: absent
+
+- name: >-
+    Add {{ esdoc_site_branch }} branch as submodule
+  command: >-
+    git submodule add
+      -b {{ esdoc_site_branch }}
+      {{ qb_git_origin_url }}
+      {{ esdoc_site_dir }}
+  args:
+    chdir: "{{ esdoc_package_root }}"
+
+# TODO doesn't work, not sure why... maybe rbenv BS?
+- name: >-
+    Install gh-pages gems
+  when: esdoc_bundle_install
+  # with_first_found:
+  # - "{{ ansible_env.HOME }}/.rbenv/shims/bundle"
+  # - /usr/local/bin/bundle
+  # - /usr/bin/bundle
+  # loop_control:
+  #   loop_var: executable
+  bundler:
+    state: present
+    chdir: "{{ esdoc_site_dest }}"
+    gem_path: ./.bundle
+    # executable: "{{ executable }}"
